@@ -86,7 +86,7 @@ public:
 	Node( Virus v ) noexcept : virus( v )
 	{}
 
-	Virus& get_virus() const noexcept
+	Virus& get_virus() noexcept
 	{
 		return virus;
 	}
@@ -214,7 +214,7 @@ public:
 		if ( node == graph.end() ) {
 			throw VirusNotFound();
 		}
-		return node->get_virus();
+		return node->virus;
 	}
 	// Tworzy węzęł reprezentujący nowy wirus o identyfikatorze id
 	// powstały z wirusów o podanym identyfikatorze parent_id lub
@@ -236,7 +236,7 @@ public:
 		size_t n = parent_ids.size();
 		graph_it parents_it[n];
 		for ( size_t i = 0; i < n; i++ ) {
-			parents_it[i] = graph.find( Node<Virus>( i ) );
+			parents_it[i] = graph.find( Node<Virus>( parent_ids[i] ) );
 			if ( parents_it[i] == graph.end() ) {
 				throw VirusNotFound();
 			}
@@ -287,7 +287,7 @@ public:
 		if ( node == graph.end() ) {
 			throw VirusNotFound();
 		}
-		remove(node);
+		remove( node );
 	}
 
 private:
@@ -295,13 +295,14 @@ private:
 	{
 		// usuwamy wierzcholek z listy dzieci jego ojcow
 		while ( !node->_parents.empty() ) {
-			graph_it parent = node->_parents.begin();
-			parent->_children.erase( node );
+			// bierzemy pierwszy iterator z set'a ojcow
+			graph_it parent = *( node->_parents.begin() );
+			(parent->_children).erase( node );
 			node->_parents.erase( parent );
 		}
 		// usuwanie wierzcholek z listy ojcow jego dzieci
 		while ( !node->_children.empty() ) {
-			graph_it child = node->_children.begin();
+			graph_it child = *( node->_children.begin() );
 			child->_parents.erase( node );
 			// jesli spowodowalo to odciecie ostatniego poprzednika, usuwamy
 			// syna z grafu

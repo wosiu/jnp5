@@ -1,4 +1,4 @@
-#include "virus_genealogy.h"
+#include "../virus_genealogy.h"
 #include <cassert>
 #include <iostream>
 #include <string>
