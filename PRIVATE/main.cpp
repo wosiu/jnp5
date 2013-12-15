@@ -26,6 +26,7 @@ int main() {
   assert(gen.get_children(id1).size() == 2);
   gen.create("C", "A");
   gen.connect("C", "B");
+
   assert(gen.get_parents("C").size() == 2);
   assert(gen.get_children("A").size() == 1);
   std::vector<Virus::id_type> parents;
@@ -34,6 +35,7 @@ int main() {
   gen.create("D", parents);
   assert(gen.get_parents("D").size() == parents.size());
   assert(gen.get_children("A").size() == 2);
+  gen["D"];
   assert("D" == gen["D"].get_id());
   gen.remove("A");
   assert(!gen.exists("A"));
@@ -45,6 +47,7 @@ int main() {
   assert(!gen.exists("B"));
   assert(!gen.exists("C"));
   assert(!gen.exists("D"));
+
   try {
     gen["E"];
   }
@@ -64,4 +67,6 @@ int main() {
   catch (std::exception &e) {
     std::cout << e.what() << std::endl;
   }
+
+	return 0;
 }
