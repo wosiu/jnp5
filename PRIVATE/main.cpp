@@ -18,10 +18,19 @@ class Virus {
 
 int main() {
   VirusGenealogy<Virus> gen("A1H1");
+
   Virus::id_type const id1 = gen.get_stem_id();
-  assert(gen.exists(id1));
-  assert(gen.get_parents(id1).size() == 0);
+  //assert(gen.exists(id1));
+  //assert(gen.get_parents(id1).size() == 0);
+  gen.check();
   gen.create("A", id1);
+  /*
+  gen.check();
+  gen.create("X", "A");
+  gen.check();
+  gen.create("Y", "X");
+	*/
+
   gen.create("B", id1);
   assert(gen.get_children(id1).size() == 2);
   gen.create("C", "A");
@@ -36,12 +45,17 @@ int main() {
   assert(gen.get_parents("D").size() == parents.size());
   assert(gen.get_children("A").size() == 2);
   gen["D"];
+
   assert("D" == gen["D"].get_id());
+
+
   gen.remove("A");
+
   assert(!gen.exists("A"));
   assert(gen.exists("B"));
   assert(gen.exists("C"));
   assert(gen.exists("D"));
+
   gen.remove("B");
   assert(!gen.exists("A"));
   assert(!gen.exists("B"));
@@ -67,6 +81,6 @@ int main() {
   catch (std::exception &e) {
     std::cout << e.what() << std::endl;
   }
-
+  /**/
 	return 0;
 }
