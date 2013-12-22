@@ -1,7 +1,7 @@
 /*
 * JNP, zadanie 5
-* Łukasz Dunaj [indeks TODO]
-* Michał Woś mw336071
+* Lukasz Dunaj ld334437
+* Michal Wos mw336071
 */
 #ifndef __VIRUS_GENEALOGY_H
 #define __VIRUS_GENEALOGY_H
@@ -14,20 +14,6 @@
 #include <memory>
 #include <cassert>
 
-/* Drogi Łukaszu! Informacje o stylu, jakiego używałem poniżej:
-1. po nawiasie i przed nawiasem zawsze spacja, no chyba że puste ()
-2. 80 znaków w lini i ani źdźbłą wincej! :P
-3.
-if/for/while/switch[spacja]([spacja]warunek[spacja])[spacja]{
-	instrukcje
-}
-klamry {} robimy nawet jak jedna instrukcja
-4. class, fucnkcja, metoda - klamra rozpoczynajaca w nowej lini w przeciwienstwie
-do if/for/while/switch
-*/
-
-// TODO jak bedize skonczone usunac to i dodac wszedzie gdzie trzeba std::*
-using namespace std;
 
 /* ===================== WYJATKI =============================================*/
 
@@ -65,11 +51,11 @@ private:
 	typedef typename Virus::id_type id_type;
 	struct Node;
 	#define node second.lock()
-	typedef std::unordered_map <id_type, weak_ptr<Node> > graph_type;
+	typedef std::unordered_map <id_type, std::weak_ptr<Node> > graph_type;
 	typedef typename graph_type::iterator graph_it;
 	typedef Node* parent_type;
 
-	shared_ptr<Node> root;
+	std::shared_ptr<Node> root;
 	graph_type graph;
 
 	VirusGenealogy( VirusGenealogy<Virus> const &other ) = delete;
@@ -80,27 +66,23 @@ private:
 	{
 		Virus virus;
 		std::unordered_set <parent_type > _parents;
-		std::unordered_set <shared_ptr<Node> > _children;
+		std::unordered_set <std::shared_ptr<Node> > _children;
 		graph_it me_in_graph;
 		graph_type* _my_graph;
 
-		Node( id_type const &id, graph_type &my_graph ) noexcept : virus( Virus(id) ), _my_graph( &my_graph )
+		Node( id_type const &id, graph_type &my_graph )
+            noexcept : virus( Virus(id) ), _my_graph( &my_graph )
 		{}
 
 		~Node() noexcept
 		{
-			cout << "==================" << endl;
-			cout << "Desctructor of: " << virus.get_id() << endl;
-			cout << "Parents size: " << _parents.size() << endl;
-			cout << "Children size: " << _children.size() << endl;
-
 			// za pomoca iteratora na siebie (no-throw)
 			// usuwa swoje mapowanie z id na wskaznik z graph'u
 			_my_graph->erase( me_in_graph );
 
 			// skoro uruchomil sie destruktor, to nic nie wskazuje na ten
 			// wierzcholek nie powinien miec zadnych rodzicow
-			assert( _parents.empty() );
+			//assert( _parents.empty() );
 			while ( !_children.empty() ) {
 				auto sit = _children.begin();
 				auto child = *sit; //shared_ptr
@@ -111,7 +93,6 @@ private:
 				// wierzcholek byl jego ostatnim ojcem
 				_children.erase( sit );
 			}
-			cout << "END OF NODE DESTRUCTOR" << endl;
 		}
 
 		void cut_fst_parent() noexcept
@@ -126,21 +107,17 @@ private:
 
 		void remove() noexcept
 		{
-			cout << "-------------------------------------\n";
-			cout << "Removing: " << virus.get_id() << endl;
-			assert( !_parents.empty() );
 			// usuwamy wierzcholek z listy dzieci jego ojcow (odcinamy od ojcow)
 			// (>1), aby destruktor obecnego wierzcholka wywolal sie poza while
 			while ( _parents.size() > 1 ) {
 				cut_fst_parent();
 			}
 			// zostal nam ostatni ojciec
-			cout << "Removed. last parent and destructor goes on.." << endl;
 			cut_fst_parent();
-			// w tym momencie - dzieki temu, ze juz zaden shared_ptr nie wskazuje na
-			// ten wezel - wywola sie destruktor. Wszyscy ojcowie
-			// zostali odcieci. W destruktorze zostaną odciete dzieci (i tam byc moze
-			// beda rekurencyjnie usuwac sie wezly dalej.
+			// w tym momencie - dzieki temu, ze juz zaden shared_ptr nie wskazuje
+			// na ten wezel - wywola sie destruktor. Wszyscy ojcowie
+			// zostali odcieci. W destruktorze zostana odciete dzieci (i tam byc
+			// moze beda rekurencyjnie usuwac sie wezly dalej.
 		}
 
 		typename Virus::id_type get_id() const
@@ -148,31 +125,31 @@ private:
 			return virus.get_id();
 		}
 
-		void add_parent( shared_ptr<Node> parent ) noexcept
+		void add_parent( std::shared_ptr<Node> parent ) noexcept
 		{
 			_parents.insert( parent.get() );
 		}
 
-		void add_children( shared_ptr<Node> children ) noexcept
+		void add_children( std::shared_ptr<Node> children ) noexcept
 		{
-			_children.insert( shared_ptr<Node>( children ) );
+			_children.insert( std::shared_ptr<Node>( children ) );
 		}
 
-		vector<id_type> get_children_ids() const
+		std::vector<id_type> get_children_ids() const
 		{
 			std::vector<id_type> res;
 			for ( auto child : _children ) {
-				assert ( child.use_count() > 0 );
+				//assert ( child.use_count() > 0 );
 				res.push_back( child->get_id() );
 			}
 			return res;
 		}
 
-		vector<id_type> get_parents_ids() const
+		std::vector<id_type> get_parents_ids() const
 		{
 			std::vector<id_type> res;
 			for ( auto parent : _parents ) {
-				assert ( parent != NULL );
+				//assert ( parent != NULL );
 				res.push_back( parent->get_id() );
 			}
 			return res;
@@ -181,19 +158,17 @@ private:
 
 
 public:
-	// Tworzy nową genealogię.
-	// Tworzy także węzęł wirusa macierzystego o identyfikatorze stem_id.
+	// Tworzy nowa genealogie.
+	// Tworzy takze wezel wirusa macierzystego o identyfikatorze stem_id.
 	VirusGenealogy( id_type const &stem_id )
 	{
-		root = shared_ptr<Node>( new Node( stem_id, graph ) );
+		root = std::shared_ptr<Node>( new Node( stem_id, graph ) );
 		graph_it me = graph.insert( make_pair( stem_id, root ) ).first;
 		root->me_in_graph = me;
 	}
 
 	~VirusGenealogy() noexcept
 	{
-		cout << "=================================\n";
-		cout << "VirusGenealogy Desctructor" << endl;
 		// najpierw musimy wywolac rekurencyjne niszczenie sie sieci
 		// aby graph jeszcze wtedy istnial i wierzcholki mogly
 		// we wlasnych destruktorach usuwac swoje mapowania w tymze grafie
@@ -210,9 +185,9 @@ public:
 		return root->virus.get_id();
 	}
 
-	// Zwraca listę identyfikatorów bezpośrednich następników wirusa
+	// Zwraca liste identyfikatorow bezposrednich nastepnikow wirusa
 	// o podanym identyfikatorze.
-	// Zgłasza wyjątek VirusNotFound, jeśli dany wirus nie istnieje.
+	// Zglasza wyjatek VirusNotFound, jesli dany wirus nie istnieje.
 	std::vector<id_type> get_children( id_type const &id ) const
 	{
 		auto it = graph.find( id );
@@ -222,9 +197,9 @@ public:
 		return it->node->get_children_ids();
 	}
 
-	// Zwraca listę identyfikatorów bezpośrednich poprzedników wirusa
+	// Zwraca liste identyfikatorow bezposrednich poprzednikow wirusa
 	// o podanym identyfikatorze.
-	// Zgłasza wyjątek VirusNotFound, jeśli dany wirus nie istnieje.
+	// Zglasza wyjatek VirusNotFound, jesli dany wirus nie istnieje.
 	std::vector<id_type> get_parents( id_type const &id ) const
 	{
 		auto it = graph.find( id );
@@ -240,9 +215,9 @@ public:
 		return graph.find( id ) != graph.end();
 	}
 
-	// Zwraca referencję do obiektu reprezentującego wirus o podanym
+	// Zwraca referencje do obiektu reprezentujacego wirus o podanym
 	// identyfikatorze.
-	// Zgłasza wyjątek VirusNotFound, jeśli żądany wirus nie istnieje.
+	// Zglasza wyjatek VirusNotFound, jesli zadany wirus nie istnieje.
 	Virus& operator[]( id_type const &id ) const
 	{
 		auto it = graph.find( id );
@@ -251,13 +226,13 @@ public:
 		}
 		return it->node->virus;
 	}
-	// Tworzy węzęł reprezentujący nowy wirus o identyfikatorze id
-	// powstały z wirusów o podanym identyfikatorze parent_id lub
+	// Tworzy wezel reprezentujacy nowy wirus o identyfikatorze id
+	// powstaly z wirusow o podanym identyfikatorze parent_id lub
 	// podanych identyfikatorach parent_ids.
-	// Zgłasza wyjątek VirusAlreadyCreated, jeśli wirus o identyfikatorze
-	// id już istnieje.
-	// Zgłasza wyjątek VirusNotFound, jeśli któryś z wyspecyfikowanych
-	// poprzedników nie istnieje.
+	// Zglasza wyjatek VirusAlreadyCreated, jesli wirus o identyfikatorze
+	// id juz istnieje.
+	// Zglasza wyjatek VirusNotFound, jesli ktorys z wyspecyfikowanych
+	// poprzednikow nie istnieje.
 	void create( id_type const &id, std::vector<id_type> const &parent_ids )
 	{
 			if ( parent_ids.empty() ) {
@@ -269,7 +244,7 @@ public:
 			}
 			// sprawdzamy czy wszyscy ojcowie istnieja
 			size_t n = parent_ids.size();
-			weak_ptr<Node> parents[n];
+			std::weak_ptr<Node> parents[n];
 			for ( size_t i = 0; i < n; i++ ) {
 				auto parent_it = graph.find( parent_ids[i] );
 				if ( parent_it == graph.end() ) {
@@ -281,11 +256,12 @@ public:
 			}
 			// stworzenie nowego wezla o id w grafie
 			// me_in_graph daje nam iterator na umieszczony w grafie element
-			shared_ptr<Node> newNode ( new Node( id, graph ) );
-			// shared_ptr zrzutuje sie na weak_ptr do wrzucania do mapy graph, wiec jest ok.
+			std::shared_ptr<Node> newNode ( new Node( id, graph ) );
+			// shared_ptr zrzutuje sie na weak_ptr do wrzucania do mapy graph,
+			// wiec jest ok.
 			auto me_in_graph = graph.insert( make_pair( id, newNode ) ).first;
-			// zapamietuje iterator na siebie w grafie - przyda sie przy usuwaniu
-			// aby uniknac potencjalnego wyjatku przy wyszukiwaniu po id
+			// zapamietuje iterator na siebie w grafie - przyda sie przy usuwa-
+			// niu aby uniknac potencjalnego wyjatku przy wyszukiwaniu po id
 			newNode->me_in_graph = me_in_graph;
 
 			for ( size_t i = 0; i < n; i++ ) {
@@ -301,8 +277,9 @@ public:
 		create( id, std::vector<id_type>( { parent_id } ) );
 	}
 
-	// Dodaje nową krawędź w grafie genealogii.
-	// Zgłasza wyjątek VirusNotFound, jeśli któryś z podanych wirusów nie istnieje.
+	// Dodaje nowa krawedz w grafie genealogii.
+	// Zglasza wyjatek VirusNotFound, jesli ktorys z podanych wirusow nie
+	// istnieje.
 	void connect( id_type const &child_id, id_type const &parent_id )
 	{
 		graph_it child = graph.find( child_id );
@@ -318,8 +295,8 @@ public:
 	}
 
 	// Usuwa wirus o podanym identyfikatorze.
-	// Zgłasza wyjątek VirusNotFound, jeśli żądany wirus nie istnieje.
-	// Zgłasza wyjątek TriedToRemoveStemVirus przy próbie usunięcia
+	// Zglasza wyjatek VirusNotFound, jesli zadany wirus nie istnieje.
+	// Zglasza wyjatek TriedToRemoveStemVirus przy probie usuniecia
 	// wirusa macierzystego.
 	void remove( id_type const &id )
 	{
