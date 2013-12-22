@@ -72,6 +72,9 @@ private:
 	shared_ptr<Node> root;
 	graph_type graph;
 
+	VirusGenealogy( VirusGenealogy<Virus> const &other ) = delete;
+	VirusGenealogy& operator=( VirusGenealogy<Virus> const &other ) = delete;
+
 	/* ===================== NODE ============================================*/
 	struct Node
 	{
@@ -82,8 +85,7 @@ private:
 		graph_type* _my_graph;
 
 		Node( id_type const &id, graph_type &my_graph ) noexcept : virus( Virus(id) ), _my_graph( &my_graph )
-		{
-		}
+		{}
 
 		~Node() noexcept
 		{
