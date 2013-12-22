@@ -7,8 +7,8 @@
 #define __VIRUS_GENEALOGY_H
 
 #include <vector>
-#include <set>
-#include <map>
+#include <unordered_map>
+#include <unordered_set>
 #include <algorithm>
 #include <iostream>
 #include <memory>
@@ -65,7 +65,7 @@ private:
 	typedef typename Virus::id_type id_type;
 	struct Node;
 	#define node second.lock()
-	typedef std::map <id_type, weak_ptr<Node> > graph_type;
+	typedef std::unordered_map <id_type, weak_ptr<Node> > graph_type;
 	typedef typename graph_type::iterator graph_it;
 	typedef Node* parent_type;
 
@@ -79,8 +79,8 @@ private:
 	struct Node
 	{
 		Virus virus;
-		std::set <parent_type > _parents;
-		std::set <shared_ptr<Node> > _children;
+		std::unordered_set <parent_type > _parents;
+		std::unordered_set <shared_ptr<Node> > _children;
 		graph_it me_in_graph;
 		graph_type* _my_graph;
 
