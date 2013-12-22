@@ -61,17 +61,16 @@ class TriedToRemoveStemVirus: public std::exception
 template <class Virus>
 class VirusGenealogy
 {
-public:
+private:
 	typedef typename Virus::id_type id_type;
 	struct Node;
-	shared_ptr<Node> root;
-	// komparator do grafu (ktory jest set'em), porownuje wierzcholki wzgledem
-	// id wirusa
 	#define node second.lock()
-	typedef Node* parent_type;
 	typedef std::map <id_type, weak_ptr<Node> > graph_type;
-	graph_type graph;
 	typedef typename graph_type::iterator graph_it;
+	typedef Node* parent_type;
+
+	shared_ptr<Node> root;
+	graph_type graph;
 
 	/* ===================== NODE ============================================*/
 	struct Node
@@ -82,27 +81,20 @@ public:
 		graph_it me_in_graph;
 		graph_type* _my_graph;
 
-		// konstruktor dla roota, nie chcemy aby destruktor roota usunal go z mapy
-		Node( id_type const &id ) noexcept : virus( Virus(id) ), _my_graph( nullptr )
-		{
-		}
-
 		Node( id_type const &id, graph_type &my_graph ) noexcept : virus( Virus(id) ), _my_graph( &my_graph )
 		{
 		}
 
-		~Node()
+		~Node() noexcept
 		{
 			cout << "==================" << endl;
 			cout << "Desctructor of: " << virus.get_id() << endl;
 			cout << "Parents size: " << _parents.size() << endl;
 			cout << "Children size: " << _children.size() << endl;
 
-			// usuwam w grafie obecne mapowanie id -> wskaznik na ten node
-			// Jesli nullptr, tzn ze to jest root
-			if ( _my_graph != nullptr ) {
-				_my_graph->erase( me_in_graph );
-			}
+			// za pomoca iteratora na siebie (no-throw)
+			// usuwa swoje mapowanie z id na wskaznik z graph'u
+			_my_graph->erase( me_in_graph );
 
 			// skoro uruchomil sie destruktor, to nic nie wskazuje na ten
 			// wierzcholek nie powinien miec zadnych rodzicow
@@ -120,7 +112,7 @@ public:
 			cout << "END OF NODE DESTRUCTOR" << endl;
 		}
 
-		void cut_fst_parent()
+		void cut_fst_parent() noexcept
 		{
 			// bierzemy z iteratora wartosc, czyli wskaznik do pierwszego ojca
 			parent_type parent = *( _parents.begin() );
@@ -130,7 +122,7 @@ public:
 			parent->_children.erase( me_in_graph->node );
 		}
 
-		void remove()
+		void remove() noexcept
 		{
 			cout << "-------------------------------------\n";
 			cout << "Removing: " << virus.get_id() << endl;
@@ -154,12 +146,12 @@ public:
 			return virus.get_id();
 		}
 
-		void add_parent( shared_ptr<Node> parent )
+		void add_parent( shared_ptr<Node> parent ) noexcept
 		{
 			_parents.insert( parent.get() );
 		}
 
-		void add_children( shared_ptr<Node> children )
+		void add_children( shared_ptr<Node> children ) noexcept
 		{
 			_children.insert( shared_ptr<Node>( children ) );
 		}
@@ -185,26 +177,18 @@ public:
 		}
 	};
 
-	void check () {
-		cout <<  "--------------------------------" << endl;
-		cout << "root use count: " << root.use_count() << endl;
-		cout << "graph.size()" << graph.size() << endl;
-		cout << "graph:\n";
-		graph_it mit = graph.begin();
-		for (;mit!=graph.end();mit++)
-			cout << "+ id:"<< mit-> first << ", is expired: " << mit->second.expired() << endl;
-	}
-//public:
+
+public:
 	// Tworzy nową genealogię.
 	// Tworzy także węzęł wirusa macierzystego o identyfikatorze stem_id.
-	VirusGenealogy( id_type const &stem_id ) noexcept
+	VirusGenealogy( id_type const &stem_id )
 	{
 		root = shared_ptr<Node>( new Node( stem_id, graph ) );
 		graph_it me = graph.insert( make_pair( stem_id, root ) ).first;
 		root->me_in_graph = me;
 	}
 
-	~VirusGenealogy()
+	~VirusGenealogy() noexcept
 	{
 		cout << "=================================\n";
 		cout << "VirusGenealogy Desctructor" << endl;
@@ -257,10 +241,6 @@ public:
 	// Zwraca referencję do obiektu reprezentującego wirus o podanym
 	// identyfikatorze.
 	// Zgłasza wyjątek VirusNotFound, jeśli żądany wirus nie istnieje.
-	// TODO: ma zwracac referencje ( Virus& ) a nie kopie obiektu..
-	// tyle ze z referencja daje blad kompilacji
-	// "If the map object is const-qualified, the function returns a const_iterator. Otherwise, it returns an iterator."
-	// no i u nas jest wlasnie to nieszczesne "const-qualified"
 	Virus& operator[]( id_type const &id ) const
 	{
 		auto it = graph.find( id );
@@ -351,26 +331,6 @@ public:
 		it->node->remove();
 	}
 
-	void remove( graph_it it )
-	{
-		// ...
-
-		// usuwanie wierzcholek z listy ojcow jego dzieci
-//		while ( !it->node._children.empty() ) {
-//			graph_it child = *( it->node._children.begin() );
-//			child->node._parents.erase( it );
-//			it->node._children.erase( child );
-//			// jesli spowodowalo to odciecie ostatniego poprzednika, usuwamy
-//			// syna z grafu
-//			if ( child->node._parents.empty() ) {
-//				remove( child );
-//			}
-//		}
-		// ojcowie oraz synowie zaktualizowani, wiec mozemy usunac z grafu
-
-		//to takze stanie sie destruktorze:
-		//graph.erase( it );
-	}
 /**/
 };
 

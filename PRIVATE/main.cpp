@@ -20,16 +20,9 @@ int main() {
   VirusGenealogy<Virus> gen("A1H1");
 
   Virus::id_type const id1 = gen.get_stem_id();
-  //assert(gen.exists(id1));
-  //assert(gen.get_parents(id1).size() == 0);
-  gen.check();
+  assert(gen.exists(id1));
+  assert(gen.get_parents(id1).size() == 0);
   gen.create("A", id1);
-  /*
-  gen.check();
-  gen.create("X", "A");
-  gen.check();
-  gen.create("Y", "X");
-	*/
 
   gen.create("B", id1);
   assert(gen.get_children(id1).size() == 2);
@@ -50,7 +43,7 @@ int main() {
 
 
   gen.remove("A");
-/*
+
   assert(!gen.exists("A"));
   assert(gen.exists("B"));
   assert(gen.exists("C"));
