@@ -120,6 +120,35 @@ public:
 			cout << "END OF NODE DESTRUCTOR" << endl;
 		}
 
+		void cut_fst_parent()
+		{
+			// bierzemy z iteratora wartosc, czyli wskaznik do pierwszego ojca
+			parent_type parent = *( _parents.begin() );
+			// usuwam w nodzie obecnego ojca
+			_parents.erase( _parents.begin() );
+			// a w obecnym ojcu tego node'a
+			parent->_children.erase( me_in_graph->node );
+		}
+
+		void remove()
+		{
+			cout << "-------------------------------------\n";
+			cout << "Removing: " << virus.get_id() << endl;
+			assert( !_parents.empty() );
+			// usuwamy wierzcholek z listy dzieci jego ojcow (odcinamy od ojcow)
+			// (>1), aby destruktor obecnego wierzcholka wywolal sie poza while
+			while ( _parents.size() > 1 ) {
+				cut_fst_parent();
+			}
+			// zostal nam ostatni ojciec
+			cout << "Removed. last parent and destructor goes on.." << endl;
+			cut_fst_parent();
+			// w tym momencie - dzieki temu, ze juz zaden shared_ptr nie wskazuje na
+			// ten wezel - wywola sie destruktor. Wszyscy ojcowie
+			// zostali odcieci. W destruktorze zostaną odciete dzieci (i tam byc moze
+			// beda rekurencyjnie usuwac sie wezly dalej.
+		}
+
 		typename Virus::id_type get_id() const
 		{
 			return virus.get_id();
@@ -319,25 +348,7 @@ public:
 		if ( it == graph.end() ) {
 			throw VirusNotFound();
 		}
-		cout << "......................................\n";
-		cout << "Removing: " << id << endl;
-		assert( !it->node->_parents.empty() );
-		// usuwamy wierzcholek z listy dzieci jego ojcow (odcinamy od ojcow)
-		cout << "Parents size: " << it->node->_parents.size() << endl;
-
-		while ( it->node.use_count() > 0 ) {
-			// bierzemy pierwszy iterator z set'a ojcow
-			auto parent_it = it->node->_parents.begin();
-			parent_type parent = *parent_it;
-			// usuwam w nodzie obecnego ojca
-			it->node->_parents.erase( parent_it );
-			cout << "Parents size in: " << it->node->_parents.size() << endl;
-			parent->_children.erase( it->node );
-		}
-		// w tym momencie - dzieki temu, ze juz zaden shared_ptr nie wskazuje na
-		// ten wezel - wywola sie destruktor. Wszyscy ojcowie
-		// zostali odcieci. W destruktorze zostaną odciete dzieci (i tam byc moze
-		// beda rekurencyjnie usuwac sie wezly dalej.
+		it->node->remove();
 	}
 
 	void remove( graph_it it )

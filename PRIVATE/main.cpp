@@ -50,7 +50,7 @@ int main() {
 
 
   gen.remove("A");
-
+/*
   assert(!gen.exists("A"));
   assert(gen.exists("B"));
   assert(gen.exists("C"));
