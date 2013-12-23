@@ -304,8 +304,6 @@ public:
 		}
 		it->node->remove();
 	}
-
-/**/
 };
 
 #endif
