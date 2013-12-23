@@ -10,9 +10,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
-#include <iostream>
 #include <memory>
-#include <cassert>
 
 
 /* ===================== WYJATKI =============================================*/
@@ -81,8 +79,7 @@ private:
 			_my_graph->erase( me_in_graph );
 
 			// skoro uruchomil sie destruktor, to nic nie wskazuje na ten
-			// wierzcholek nie powinien miec zadnych rodzicow
-			//assert( _parents.empty() );
+			// wierzcholek nie ma juz rodzicow
 			while ( !_children.empty() ) {
 				auto sit = _children.begin();
 				auto child = *sit; //shared_ptr
@@ -132,14 +129,13 @@ private:
 
 		void add_children( std::shared_ptr<Node> children ) noexcept
 		{
-			_children.insert( std::shared_ptr<Node>( children ) );
+			_children.insert( children );
 		}
 
 		std::vector<id_type> get_children_ids() const
 		{
 			std::vector<id_type> res;
 			for ( auto child : _children ) {
-				//assert ( child.use_count() > 0 );
 				res.push_back( child->get_id() );
 			}
 			return res;
@@ -149,7 +145,6 @@ private:
 		{
 			std::vector<id_type> res;
 			for ( auto parent : _parents ) {
-				//assert ( parent != NULL );
 				res.push_back( parent->get_id() );
 			}
 			return res;
